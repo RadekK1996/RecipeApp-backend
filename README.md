@@ -5,7 +5,8 @@
 
 ## Uruchomienie : 
 - Sklonuj repozytorium na swój komputer.
-- Zainstaluj zależności: npm install.  
+- Zainstaluj zależności: npm install.
+- Zainstaluj typescript : npm i -g typescript
 - Utwórz plik .env na podstawie pliku .env-example i ustaw odpowiednie wartości.
 - Uruchom serwer: npm start / http://localhost:3001
 
