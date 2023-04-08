@@ -146,3 +146,4 @@ dist
 utils/db.ts
 config/config.ts
 .env
+.idea/
