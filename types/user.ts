@@ -1,5 +1,5 @@
-import { Document } from "mongoose";
-import { IRecipe } from "./recipe";
+import {Document} from "mongoose";
+import {IRecipe} from "./recipe";
 
 export interface IUser extends Document {
     username: string;

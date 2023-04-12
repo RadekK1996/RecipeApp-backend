@@ -1,4 +1,4 @@
-import mongoose, { Document } from "mongoose";
+import mongoose, {Document} from "mongoose";
 
 export interface IRecipe extends Document {
     name: string;

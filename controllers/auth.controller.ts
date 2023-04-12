@@ -11,7 +11,7 @@ config();
 const jwtSecret = process.env.JWT_SECRET;
 
 
-export const registerUser = async (req: Request, res: Response, next: NextFunction) : Promise<void> => {
+export const registerUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const {username, password} = req.body;
         const user = await UserModel.findOne({username});
@@ -32,7 +32,7 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
 
     }
 
-}
+};
 
 export const loginUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -54,7 +54,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     } catch (err) {
         next(err);
     }
-}
+};
 
 export const verifyToken = (req: Request, res: Response, next: NextFunction): void => {
     const token: string | undefined = req.headers.authorization;
