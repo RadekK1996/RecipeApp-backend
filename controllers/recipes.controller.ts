@@ -14,7 +14,6 @@ export const getAllRecipes = async (req: Request, res: Response): Promise<void> 
     }
 };
 
-
 export const createRecipe = async (req: Request, res: Response): Promise<void> => {
     try {
         const recipe: IRecipe = new RecipeModel(req.body);
