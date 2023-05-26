@@ -146,4 +146,4 @@ dist
 config/config.ts
 .env
 .idea/
-jest.config.js
+.jest.config.js
