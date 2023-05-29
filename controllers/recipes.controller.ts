@@ -10,7 +10,7 @@ export const getAllRecipes = async (req: Request, res: Response): Promise<void> 
         const response = await RecipeModel.find({});
         res.json(response);
     } catch (err) {
-        res.json(err);
+        res.status(500).json({ error: 'Server error' });
     }
 };
 
