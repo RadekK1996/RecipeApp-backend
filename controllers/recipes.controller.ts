@@ -10,7 +10,7 @@ export const getAllRecipes = async (req: Request, res: Response): Promise<void> 
         const response = await RecipeModel.find({});
         res.json(response);
     } catch (err) {
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({error: 'Server error'});
     }
 };
 
@@ -32,8 +32,13 @@ export const createRecipe = async (req: Request, res: Response): Promise<void> =
 
 export const addRecipeToUser = async (req: Request, res: Response): Promise<void> => {
     try {
-        const recipe: IRecipe = await RecipeModel.findById(req.body.recipeID);
+        const recipe: IRecipe | null = await RecipeModel.findById(req.body.recipeID);
         const user: IUser = await UserModel.findById(req.body.userID);
+
+        if (!recipe) {
+            res.status(404).json({error: 'No recipe found with the provided ID.'});
+            return;
+        }
         user.savedRecipes.push(recipe);
         await user.save();
         res.json({savedRecipes: user.savedRecipes});
@@ -45,9 +50,13 @@ export const addRecipeToUser = async (req: Request, res: Response): Promise<void
 export const getSavedRecipeIds = async (req: Request, res: Response): Promise<void> => {
     try {
         const user: IUser = await UserModel.findById(req.params.userID);
-        res.json({savedRecipes: user?.savedRecipes});
+        if (!user) {
+            res.status(404).json({error: 'User not found'});
+        } else {
+            res.json({savedRecipes: user.savedRecipes});
+        }
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({error: 'Server error'});
     }
 };
 
