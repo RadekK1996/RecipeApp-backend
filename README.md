@@ -30,4 +30,3 @@
 - dodanie modali pokazujących informacje podczas wylogowania lub usuwania przepisu czy na pewno chcemy to zrobić,
 - panel admina z możliwościa usuwania uzytkowników i edycją przepisów
 
-PS dla Kuby: niestety nie udało mi się wrzucić projektu na hosting najzwyczajniej w swiecie z powodu braku czasu i wiem, że popełniłem błąd, ze od razu nie wrzucalem na bieżąco kodu na githuba tylko juz 'gotowy' ( bo on wcale nie jest w stuprocentach gotowy xD) projekt i tez wiem , ze wszystko jest na 1 branchu co nie jest poprawne, ale jestem świadomy tego wszystkiego i w przyszłości obiecuje poprawę!:D Pozdrawiam prowadzących MegaK
