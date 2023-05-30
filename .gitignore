@@ -144,6 +144,5 @@ dist
 # End of https://www.toptal.com/developers/gitignore/api/node
 
 config/config.ts
-.env
 .idea/
-.jest.config.js
+jest.config.js

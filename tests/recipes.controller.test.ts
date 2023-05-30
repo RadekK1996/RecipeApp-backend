@@ -49,9 +49,10 @@ describe('Recipes Controller', () => {
             await getAllRecipes({} as Request, res as Response);
 
             expect(res.status).toHaveBeenCalledWith(500);
-            expect(res.json).toHaveBeenCalledWith({ error: 'Server error' });
+            expect(res.json).toHaveBeenCalledWith({error: 'Server error'});
         });
     });
+
     describe('createRecipe', () => {
         it('creates a new recipe when the request is valid', async () => {
             (RecipeModel as unknown as jest.Mock).mockReturnValue(mockRecipe);
