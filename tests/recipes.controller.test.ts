@@ -1,14 +1,18 @@
 import {Request, Response} from 'express';
-import {createRecipe, getAllRecipes} from '../controllers/recipes.controller';
+import {addRecipeToUser, createRecipe, getAllRecipes, getSavedRecipeIds} from '../controllers/recipes.controller';
 import {RecipeModel} from "../models/Recipes";
 import {IRecipe} from "../types/recipe";
+import {IUser} from "../types/user";
+import {UserModel} from "../models/Users";
 
 jest.mock('../models/Recipes');
+jest.mock('../models/Users');
 
 describe('Recipes Controller', () => {
     let req: Partial<Request>;
     let res: Partial<Response>;
     let mockRecipe: Partial<IRecipe>;
+    let mockUser: Partial<IUser>
 
     beforeEach(() => {
         mockRecipe = new RecipeModel();
@@ -85,6 +89,113 @@ describe('Recipes Controller', () => {
 
             expect(res.status).toHaveBeenCalledWith(500);
             expect(res.json).toHaveBeenCalledWith({error: 'Server error'});
+        });
+    });
+
+    describe('addRecipeToUser', () => {
+        beforeEach(() => {
+            mockRecipe = new RecipeModel();
+            mockUser = new UserModel();
+            mockUser.savedRecipes = [];
+
+            req = {
+                body: {recipeID: '1', userID: '1'},
+            };
+
+            res = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn()
+            };
+        });
+
+        it('adds a recipe to the user when the IDs are valid', async () => {
+            (RecipeModel.findById as jest.Mock).mockResolvedValue(mockRecipe);
+            (UserModel.findById as jest.Mock).mockResolvedValue(mockUser);
+            (mockUser.save as jest.Mock).mockResolvedValue(undefined);
+
+            await addRecipeToUser(req as Request, res as Response);
+
+            expect(mockUser.savedRecipes).toContain(mockRecipe);
+            expect(res.json).toHaveBeenCalledWith({savedRecipes: mockUser.savedRecipes});
+        });
+
+        it('returns a server error when the RecipeModel fetch fails', async () => {
+            const mockError = new Error('Database error');
+
+            (RecipeModel.findById as jest.Mock).mockRejectedValue(mockError);
+
+            await addRecipeToUser(req as Request, res as Response);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.json).toHaveBeenCalledWith(mockError);
+        });
+
+        it('returns a server error when the UserModel fetch fails', async () => {
+            const mockError = new Error('Database error');
+
+            (UserModel.findById as jest.Mock).mockRejectedValue(mockError);
+
+            await addRecipeToUser(req as Request, res as Response);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.json).toHaveBeenCalledWith(mockError);
+        });
+
+        it('returns an error when no recipe is found with provided ID', async () => {
+            (RecipeModel.findById as jest.Mock).mockResolvedValue(null);
+
+            await addRecipeToUser(req as Request, res as Response);
+
+            expect(res.status).toHaveBeenCalledWith(404);
+            expect(res.json).toHaveBeenCalledWith({error: 'No recipe found with the provided ID.'});
+        });
+
+        it('returns a server error when the save operation fails', async () => {
+            const serverError = new Error('ServerError');
+
+            (RecipeModel.findById as jest.Mock).mockResolvedValue(mockRecipe);
+            (UserModel.findById as jest.Mock).mockResolvedValue(mockUser);
+            (mockUser.save as jest.Mock).mockRejectedValue(serverError);
+
+            await addRecipeToUser(req as Request, res as Response);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.json).toHaveBeenCalledWith(serverError);
+        });
+    });
+
+    describe('getSavedRecipeIds', () => {
+        beforeEach(() => {
+            mockUser = {
+                _id: '123',
+                savedRecipes: ['456', '789']
+            };
+
+            req = {
+                params: {userID: '123'},
+            };
+
+            res = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn()
+            };
+        });
+
+        it('returns saved recipe ids when the user is found', async () => {
+            (UserModel.findById as jest.Mock).mockResolvedValue(mockUser);
+
+            await getSavedRecipeIds(req as Request, res as Response);
+
+            expect(res.json).toHaveBeenCalledWith({savedRecipes: mockUser.savedRecipes});
+        });
+
+        it('returns an error when the user is not found', async () => {
+            (UserModel.findById as jest.Mock).mockResolvedValue(null);
+
+            await getSavedRecipeIds(req as Request, res as Response);
+
+            expect(res.status).toHaveBeenCalledWith(404);
+            expect(res.json).toHaveBeenCalledWith({error: 'User not found'});
         });
     });
 });
