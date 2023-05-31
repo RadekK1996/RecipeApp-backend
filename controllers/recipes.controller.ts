@@ -37,7 +37,6 @@ export const addRecipeToUser = async (req: Request, res: Response): Promise<void
 
         if (!recipe) {
             res.status(404).json({error: 'No recipe found with the provided ID.'});
-            return;
         }
         user.savedRecipes.push(recipe);
         await user.save();
@@ -63,12 +62,16 @@ export const getSavedRecipeIds = async (req: Request, res: Response): Promise<vo
 export const getSavedRecipes = async (req: Request, res: Response): Promise<void> => {
     try {
         const user: IUser = await UserModel.findById(req.params.userID);
-        const savedRecipes = await RecipeModel.find({
-            _id: {$in: user.savedRecipes},
-        });
-        res.json({savedRecipes});
+        if (!user) {
+            res.status(404).json({error: 'User not found'});
+        } else {
+            const savedRecipes = await RecipeModel.find({
+                _id: {$in: user.savedRecipes},
+            });
+            res.json({savedRecipes});
+        }
     } catch (err) {
-        res.json(err);
+        res.status(500).json({error: 'Server error'});
     }
 };
 
@@ -103,6 +106,9 @@ export const deleteSavedRecipe = async (req: Request, res: Response, next: NextF
             throw new ValidationError("Recipe not found.");
         }
         const user: IUser = await UserModel.findById(req.params.userID);
+        if (!user) {
+            throw new ValidationError("User not found.");
+        }
         user.savedRecipes = user.savedRecipes.filter(
             (recipeID) => recipeID != req.params.recipeID
         );
