@@ -31,7 +31,6 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
         next(err)
 
     }
-
 };
 
 export const loginUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
