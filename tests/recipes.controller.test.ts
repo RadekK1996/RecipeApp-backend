@@ -9,7 +9,7 @@ import {
     createRecipe, deleteSavedRecipe,
     getAllRecipes, getRecipeById,
     getSavedRecipeIds,
-    getSavedRecipes, getUserById
+    getSavedRecipes, getUserById, searchRecipes
 } from '../controllers/recipes.controller';
 
 
@@ -377,5 +377,66 @@ describe('Recipes Controller', () => {
             expect(next).toHaveBeenCalledWith(new ValidationError('User not found.'));
         });
     });
-});
 
+    describe('searchRecipes', () => {
+        beforeEach(() => {
+            req = {
+                query: {name: 'test'},
+            };
+
+            res = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn()
+            };
+        });
+
+        it('should return recipes that match the search term', async () => {
+            mockRecipes = [{_id: '123', name: 'test recipe'}];
+
+            (RecipeModel.find as jest.Mock).mockResolvedValue(mockRecipes);
+
+            await searchRecipes(req as Request, res as Response);
+
+            expect(res.json).toHaveBeenCalledWith(mockRecipes);
+        });
+
+        it('should return an empty array when no recipes match the search term', async () => {
+            (RecipeModel.find as jest.Mock).mockResolvedValue([]);
+
+            await searchRecipes(req as Request, res as Response);
+
+            expect(res.json).toHaveBeenCalledWith([]);
+        });
+
+        it('should return a server error when the data base query fails', async () => {
+            (RecipeModel.find as jest.Mock).mockRejectedValue(new Error('Database error'));
+
+            await searchRecipes(req as Request, res as Response);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.json).toHaveBeenCalledWith({error: 'Server error'});
+        });
+
+        it('should return an empty array when the search term is an empty string', async () => {
+            req.query.name = '';
+            mockRecipes = [];
+
+            (RecipeModel.find as jest.Mock).mockResolvedValue(mockRecipes);
+
+            await searchRecipes(req as Request, res as Response);
+
+            expect(res.json).toHaveBeenCalledWith(mockRecipes);
+        });
+
+        it('should return an empty array when the search term does not match any recipe names', async () => {
+            req.query.name = 'nonexistent recipe name';
+            mockRecipes = [];
+
+            (RecipeModel.find as jest.Mock).mockResolvedValue(mockRecipes);
+
+            await searchRecipes(req as Request, res as Response);
+
+            expect(res.json).toHaveBeenCalledWith(mockRecipes);
+        });
+    });
+});
