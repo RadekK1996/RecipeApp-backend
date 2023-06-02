@@ -118,3 +118,20 @@ export const deleteSavedRecipe = async (req: Request, res: Response, next: NextF
         next(err)
     }
 };
+
+export const searchRecipes = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const {name} = req.query;
+        let filter = {};
+
+        if (typeof name === 'string') {
+            filter = {...filter, name: new RegExp(name, 'i')};
+        }
+
+        const recipes = await RecipeModel.find(filter);
+        res.json(recipes);
+
+    } catch (e) {
+        res.status(500).json({error: 'Server error'});
+    }
+};
