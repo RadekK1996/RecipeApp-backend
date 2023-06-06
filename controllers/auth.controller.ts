@@ -9,7 +9,7 @@ import {IUser} from "../types/user";
 
 config();
 const jwtSecret = process.env.JWT_SECRET;
-
+const serverAdminSecret = process.env.ADMIN_SECRET
 
 export const registerUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -33,6 +33,40 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
     }
 };
 
+export const registerAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+
+        const {username, password, adminSecret: userAdminSecret} = req.body;
+
+        if (userAdminSecret !== serverAdminSecret) {
+            throw new ValidationError("Invalid registration attempt");
+        }
+
+        const user = await UserModel.findOne({username});
+
+        if (user !== null) {
+            throw new ValidationError("User already exists!");
+        }
+
+        if (!validatePassword(password)) {
+            throw new ValidationError("Password must contain at least one digit, one lowercase, one uppercase letter, and be at least 5 characters long.");
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser: IUser = new UserModel({
+            username,
+            password: hashedPassword,
+            isAdmin: true
+        });
+
+        await newUser.save();
+        res.json({message: "Admin Registered Successfully."});
+
+    } catch (err) {
+        next(err)
+    }
+};
+
 export const loginUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const {username, password} = req.body;
@@ -48,7 +82,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
             throw new ValidationError("Username or Password is incorrect!");
         }
 
-        const token = jwt.sign({id: user._id}, jwtSecret);
+        const token = jwt.sign({id: user._id, isAdmin: user.isAdmin}, jwtSecret);
         res.json({token, userID: user._id});
     } catch (err) {
         next(err);
