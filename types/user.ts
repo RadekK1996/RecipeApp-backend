@@ -6,4 +6,9 @@ export interface IUser extends Document {
     password: string;
     isAdmin: boolean;
     savedRecipes: IRecipe["_id"][];
-};
+}
+
+export interface DecodedUser {
+    id: string;
+    isAdmin: boolean;
+}
