@@ -3,7 +3,7 @@ import {RecipeModel} from "../models/Recipes";
 import {UserModel} from "../models/Users";
 import {ValidationError} from "../utils/errors";
 import {IRecipe} from "../types/recipe";
-import {IUser} from "../types/user";
+import {DecodedUser, IUser} from "../types/user";
 
 export const getAllRecipes = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -133,5 +133,26 @@ export const searchRecipes = async (req: Request, res: Response): Promise<void> 
 
     } catch (e) {
         res.status(500).json({error: 'Server error'});
+    }
+};
+
+export const deleteRecipeByAdmin = async (req: Request & {user?: DecodedUser}, res: Response, next: NextFunction): Promise<void> => {
+    try {
+
+        if (!req.user || !req.user.isAdmin) {
+            res.status(403).json({error: 'User is not admin'});
+            return;
+        }
+
+        const recipe: IRecipe | null = await RecipeModel.findById(req.params.recipeID);
+        if (!recipe) {
+            throw new ValidationError("Recipe not found.");
+        }
+
+
+        await RecipeModel.deleteOne({_id: req.params.recipeID});
+        res.json({message: "Recipe has been deleted."});
+    } catch (err) {
+        next(err)
     }
 };
