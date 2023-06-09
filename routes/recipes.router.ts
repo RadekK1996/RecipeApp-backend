@@ -2,6 +2,7 @@ import {Router} from "express";
 import {
     addRecipeToUser,
     createRecipe,
+    deleteRecipeByAdmin,
     deleteSavedRecipe,
     getAllRecipes,
     getRecipeById,
@@ -20,4 +21,5 @@ export const recipesRouter = Router()
     .get('/:recipeID', getRecipeById)
     .get('/users/:userID', getUserById)
     .delete('/:userID/savedRecipes/:recipeID', deleteSavedRecipe)
+    .delete('/:recipeID', verifyToken, deleteRecipeByAdmin)
 
