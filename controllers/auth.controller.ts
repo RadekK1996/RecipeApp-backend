@@ -5,7 +5,7 @@ import {validatePassword} from "../utils/passwordValidator";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import {config} from "dotenv";
-import {IUser} from "../types/user";
+import {DecodedUser, IUser} from "../types/user";
 
 config();
 const jwtSecret = process.env.JWT_SECRET;
@@ -55,11 +55,13 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     }
 };
 
-export const verifyToken = (req: Request, res: Response, next: NextFunction): void => {
+export const verifyToken = (req: Request & {user?: DecodedUser}, res: Response, next: NextFunction): void => {
     const token: string | undefined = req.headers.authorization;
     if (token) {
-        jwt.verify(token, jwtSecret, (err: jwt.VerifyErrors | null) => {
+        jwt.verify(token, jwtSecret, (err: jwt.VerifyErrors | null, user: DecodedUser) => {
             if (err) return res.sendStatus(403);
+
+            req.user = user;
             next();
         })
     } else {
