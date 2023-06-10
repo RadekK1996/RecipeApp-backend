@@ -156,3 +156,18 @@ export const deleteRecipeByAdmin = async (req: Request & {user?: DecodedUser}, r
         next(err)
     }
 };
+
+export const checkAdminStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { userID } = req.params;
+        const user = await UserModel.findById(userID);
+
+        if (!user) {
+            throw new ValidationError("User not found.");
+        }
+
+        res.json({ isAdmin: user.isAdmin });
+    } catch (err) {
+        next(err);
+    }
+};
