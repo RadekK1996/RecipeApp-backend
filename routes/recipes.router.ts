@@ -1,13 +1,16 @@
 import {Router} from "express";
 import {
     addRecipeToUser,
+    checkAdminStatus,
     createRecipe,
     deleteRecipeByAdmin,
     deleteSavedRecipe,
     getAllRecipes,
     getRecipeById,
     getSavedRecipeIds,
-    getSavedRecipes, getUserById, searchRecipes
+    getSavedRecipes,
+    getUserById,
+    searchRecipes
 } from "../controllers/recipes.controller";
 import {verifyToken} from "../controllers/auth.controller";
 
@@ -22,4 +25,5 @@ export const recipesRouter = Router()
     .get('/users/:userID', getUserById)
     .delete('/:userID/savedRecipes/:recipeID', deleteSavedRecipe)
     .delete('/:recipeID', verifyToken, deleteRecipeByAdmin)
+    .get(`/adminStatus/:userID`, checkAdminStatus);
 
