@@ -136,7 +136,7 @@ export const searchRecipes = async (req: Request, res: Response): Promise<void> 
     }
 };
 
-export const deleteRecipeByAdmin = async (req: Request & {user?: DecodedUser}, res: Response, next: NextFunction): Promise<void> => {
+export const deleteRecipeByAdmin = async (req: Request & { user?: DecodedUser }, res: Response, next: NextFunction): Promise<void> => {
     try {
 
         if (!req.user || !req.user.isAdmin) {
@@ -157,16 +157,42 @@ export const deleteRecipeByAdmin = async (req: Request & {user?: DecodedUser}, r
     }
 };
 
+export const editRecipeByAdmin = async (req: Request & { user?: DecodedUser }, res: Response, next: NextFunction): Promise<void> => {
+    try {
+
+        if (!req.user || !req.user.isAdmin) {
+            res.status(403).json({error: 'User is not admin'});
+            return;
+        }
+
+        const recipeData = req.body;
+
+        await RecipeModel.updateOne({ _id: req.params.recipeID }, { $set: recipeData });
+
+        const updatedRecipe : IRecipe | null = await RecipeModel.findById(req.params.recipeID);
+        console.log('Recipe data after update: ', updatedRecipe);
+
+        if(!updatedRecipe) {
+            throw new ValidationError('Updated recipe not found.');
+        }
+        res.json({message: "Recipe has been updated", recipe: updatedRecipe});
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+
 export const checkAdminStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const { userID } = req.params;
+        const {userID} = req.params;
         const user = await UserModel.findById(userID);
 
         if (!user) {
             throw new ValidationError("User not found.");
         }
 
-        res.json({ isAdmin: user.isAdmin });
+        res.json({isAdmin: user.isAdmin});
     } catch (err) {
         next(err);
     }
