@@ -5,6 +5,7 @@ import {
     createRecipe,
     deleteRecipeByAdmin,
     deleteSavedRecipe,
+    editRecipeByAdmin,
     getAllRecipes,
     getRecipeById,
     getSavedRecipeIds,
@@ -21,9 +22,11 @@ export const recipesRouter = Router()
     .get('/search', searchRecipes)
     .get('/savedRecipes/ids/:userID', getSavedRecipeIds)
     .get('/savedRecipes/:userID', getSavedRecipes)
+    .patch('/:recipeID', verifyToken, editRecipeByAdmin)
     .get('/:recipeID', getRecipeById)
     .get('/users/:userID', getUserById)
     .delete('/:userID/savedRecipes/:recipeID', deleteSavedRecipe)
     .delete('/:recipeID', verifyToken, deleteRecipeByAdmin)
     .get(`/adminStatus/:userID`, checkAdminStatus);
+
 
