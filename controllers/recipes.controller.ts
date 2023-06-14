@@ -136,6 +136,21 @@ export const searchRecipes = async (req: Request, res: Response): Promise<void> 
     }
 };
 
+export const checkAdminStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const {userID} = req.params;
+        const user = await UserModel.findById(userID);
+
+        if (!user) {
+            throw new ValidationError("User not found.");
+        }
+
+        res.json({isAdmin: user.isAdmin});
+    } catch (err) {
+        next(err);
+    }
+};
+
 export const deleteRecipeByAdmin = async (req: Request & { user?: DecodedUser }, res: Response, next: NextFunction): Promise<void> => {
     try {
 
@@ -182,17 +197,4 @@ export const editRecipeByAdmin = async (req: Request & { user?: DecodedUser }, r
 };
 
 
-export const checkAdminStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const {userID} = req.params;
-        const user = await UserModel.findById(userID);
 
-        if (!user) {
-            throw new ValidationError("User not found.");
-        }
-
-        res.json({isAdmin: user.isAdmin});
-    } catch (err) {
-        next(err);
-    }
-};
