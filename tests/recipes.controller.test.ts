@@ -1,17 +1,21 @@
-import {Request, Response} from 'express';
+import {Request as ExpressRequest, Response} from 'express';
 import {RecipeModel} from "../models/Recipes";
 import {IRecipe} from "../types/recipe";
-import {IUser} from "../types/user";
+import {DecodedUser, IUser} from "../types/user";
 import {UserModel} from "../models/Users";
 import {ValidationError} from "../utils/errors";
 import {
-    addRecipeToUser,
-    createRecipe, deleteSavedRecipe,
+    addRecipeToUser, checkAdminStatus,
+    createRecipe, deleteRecipeByAdmin, deleteSavedRecipe,
     getAllRecipes, getRecipeById,
     getSavedRecipeIds,
     getSavedRecipes, getUserById, searchRecipes
 } from '../controllers/recipes.controller';
 
+
+interface Request extends ExpressRequest {
+    user?: DecodedUser;
+}
 
 jest.mock('../models/Recipes');
 jest.mock('../models/Users');
@@ -438,5 +442,111 @@ describe('Recipes Controller', () => {
 
             expect(res.json).toHaveBeenCalledWith(mockRecipes);
         });
+    });
+
+    describe('checkAdminStatus', () => {
+        beforeEach(() => {
+            req = {
+                params: {
+                    userID: '123'
+                }
+            };
+
+            res = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn()
+            };
+            next = jest.fn();
+        });
+
+        it('should return the admin status of user', async () => {
+            const mockUser = {_id: '123', isAdmin: true};
+
+            (UserModel.findById as jest.Mock).mockResolvedValue(mockUser);
+
+            await checkAdminStatus(req as Request, res as Response, next);
+
+
+            expect(res.json).toHaveBeenCalledWith({isAdmin: mockUser.isAdmin});
+        });
+
+        it('should return an error if the user is not found', async () => {
+            (UserModel.findById as jest.Mock).mockResolvedValue(null);
+
+            await checkAdminStatus(req as Request, res as Response, next);
+
+
+            expect(next).toHaveBeenCalledWith(new ValidationError("User not found."));
+        });
+
+        it('should return the error to next function if there is a database error', async () => {
+            const error = new Error('Database error');
+            (UserModel.findById as jest.Mock).mockRejectedValue(error);
+
+            await checkAdminStatus(req as Request, res as Response, next);
+
+            expect(next).toHaveBeenCalledWith(error);
+        });
+
+    });
+
+    describe('deleteRecipeByAdmin', () => {
+        beforeEach(() => {
+            req = {
+                user: {
+                    isAdmin: true,
+                    id: '123'
+                },
+
+                params: {
+                    recipeID: '123'
+                }
+            };
+
+            res = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn()
+            };
+            next = jest.fn();
+        });
+
+        it('should delete a recipe if the user is admin', async () => {
+            const mockRecipe = [{_id: '123', name: 'test recipe'}];
+
+            (RecipeModel.findById as jest.Mock).mockResolvedValue(mockRecipe);
+            (RecipeModel.deleteOne as jest.Mock).mockResolvedValue({deletedCount: 1});
+
+            await deleteRecipeByAdmin(req as Request & { user?: DecodedUser }, res as Response, next);
+
+            expect(res.json).toHaveBeenCalledWith({message: "Recipe has been deleted."});
+        });
+
+        it('should return an error if the user is not an admin', async () => {
+            req.user.isAdmin = false;
+
+            (RecipeModel.deleteOne as jest.Mock).mockResolvedValue({deletedCount: 1});
+
+            await deleteRecipeByAdmin(req as Request & { user?: DecodedUser }, res as Response, next);
+
+            expect(res.status).toHaveBeenCalledWith(403);
+            expect(res.json).toHaveBeenCalledWith({error: 'User is not admin'});
+        });
+
+        it('should return an error if the recipe is not found', async () => {
+            (RecipeModel.findById as jest.Mock).mockResolvedValue(null);
+
+            await deleteRecipeByAdmin(req as Request & { user?: DecodedUser }, res as Response, next);
+
+            expect(next).toHaveBeenCalledWith(new ValidationError("Recipe not found."));
+        });
+        it('should pass the error to next function if there is a database error', async () => {
+            const error = new Error('Database error');
+            (RecipeModel.findById as jest.Mock).mockRejectedValue(error);
+
+            await deleteRecipeByAdmin(req as Request & { user?: DecodedUser }, res as Response, next);
+
+            expect(next).toHaveBeenCalledWith(error);
+        });
+
     });
 });
