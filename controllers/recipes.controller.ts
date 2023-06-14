@@ -170,7 +170,6 @@ export const editRecipeByAdmin = async (req: Request & { user?: DecodedUser }, r
         await RecipeModel.updateOne({ _id: req.params.recipeID }, { $set: recipeData });
 
         const updatedRecipe : IRecipe | null = await RecipeModel.findById(req.params.recipeID);
-        console.log('Recipe data after update: ', updatedRecipe);
 
         if(!updatedRecipe) {
             throw new ValidationError('Updated recipe not found.');
