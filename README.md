@@ -22,11 +22,13 @@
 - możliwość przejścia do widoku wybranego przepisu poprzez przycisk 'show details',
 - możliwość zapisania wybranego przepisu poprzez przycisk 'save',
 - możliwość usuwania przepisu z listy zapisanych przepisów
-
+- możliwość wyszukiwania danego przepisu po nazwie / kategorii,
+- dodanie modali pokazujących informacje podczas wylogowania lub usuwania przepisu czy na pewno chcemy to zrobić,
+- konto admina z możliwościa usuwania uzytkowników i edycją przepisów
 
 ## Funkcjonalności, ktore chce zrobić w przyszłości : 
-- możliwość wyszukiwania danego przepisu po nazwie / kategorii,
 - dodanie większej ilości kategorii,
-- dodanie modali pokazujących informacje podczas wylogowania lub usuwania przepisu czy na pewno chcemy to zrobić,
-- panel admina z możliwościa usuwania uzytkowników i edycją przepisów
+- dodanie większej ilości uprawnień na koncie admina,
+- widok profilu zalogowanego usera z podstawowymi danymi o koncie,
+- możliwość usuwania konta przez każdego usera
 
