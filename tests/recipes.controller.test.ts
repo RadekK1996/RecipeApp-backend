@@ -6,7 +6,7 @@ import {UserModel} from "../models/Users";
 import {ValidationError} from "../utils/errors";
 import {
     addRecipeToUser, checkAdminStatus,
-    createRecipe, deleteRecipeByAdmin, deleteSavedRecipe,
+    createRecipe, deleteRecipeByAdmin, deleteSavedRecipe, editRecipeByAdmin,
     getAllRecipes, getRecipeById,
     getSavedRecipeIds,
     getSavedRecipes, getUserById, searchRecipes
@@ -544,6 +544,70 @@ describe('Recipes Controller', () => {
             (RecipeModel.findById as jest.Mock).mockRejectedValue(error);
 
             await deleteRecipeByAdmin(req as Request & { user?: DecodedUser }, res as Response, next);
+
+            expect(next).toHaveBeenCalledWith(error);
+        });
+
+    });
+
+    describe('editRecipeByAdmin', () => {
+        beforeEach(() => {
+            req = {
+                user: {
+                    isAdmin: true,
+                    id: '123'
+                },
+
+                params: {
+                    recipeID: '123'
+                },
+                body: {
+                    name: 'Updated recipe',
+                    ingredients: ['ingredients1', 'ingredients2']
+                }
+            };
+
+            res = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn()
+            };
+            next = jest.fn();
+        });
+
+        it('should edit a recipe if the user is admin', async () => {
+            const mockRecipe = {_id: '123', name: 'test recipe'};
+
+            (RecipeModel.updateOne as jest.Mock).mockResolvedValue({nModified: 1});
+            (RecipeModel.findById as jest.Mock).mockResolvedValue(mockRecipe);
+
+
+            await editRecipeByAdmin(req as Request & { user?: DecodedUser }, res as Response, next);
+
+            expect(res.json).toHaveBeenCalledWith({message: "Recipe has been updated", recipe: mockRecipe});
+        });
+
+        it('should return an error if the user is not an admin', async () => {
+            req.user.isAdmin = false;
+
+            await editRecipeByAdmin(req as Request & { user?: DecodedUser }, res as Response, next);
+
+            expect(res.status).toHaveBeenCalledWith(403);
+            expect(res.json).toHaveBeenCalledWith({error: 'User is not admin'});
+        });
+
+        it('should return an error if the recipe is not found', async () => {
+            (RecipeModel.findById as jest.Mock).mockResolvedValue(null);
+
+            await editRecipeByAdmin(req as Request & { user?: DecodedUser }, res as Response, next);
+
+            expect(next).toHaveBeenCalledWith(new ValidationError("Updated recipe not found."));
+        });
+
+        it('should pass the error to next function if there is a database error', async () => {
+            const error = new Error('Database error');
+            (RecipeModel.updateOne as jest.Mock).mockRejectedValue(error);
+
+            await editRecipeByAdmin(req as Request & { user?: DecodedUser }, res as Response, next);
 
             expect(next).toHaveBeenCalledWith(error);
         });
