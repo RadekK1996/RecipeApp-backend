@@ -55,6 +55,28 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     }
 };
 
+export const deleteUser = async (req: Request & { user?: DecodedUser }, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userID = req.user?.id;
+
+        if (!userID) {
+            throw new ValidationError("Invalid token.");
+        }
+
+        const user: IUser = await UserModel.findById(userID);
+
+        if (!user) {
+            throw new ValidationError("User not found.");
+        }
+
+        await UserModel.findByIdAndRemove(userID);
+        res.json({message: "User deleted successfully."});
+    } catch (err) {
+        next(err)
+    }
+};
+
+
 export const verifyToken = (req: Request & {user?: DecodedUser}, res: Response, next: NextFunction): void => {
     const token: string | undefined = req.headers.authorization;
     if (token) {
