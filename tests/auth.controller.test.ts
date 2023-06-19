@@ -1,10 +1,15 @@
-import {NextFunction, Request, Response} from 'express';
+import {NextFunction, Request as ExpressRequest, Response} from 'express';
 import bcrypt from "bcrypt";
 import {UserModel} from "../models/Users";
-import {loginUser, registerUser} from "../controllers/auth.controller";
-import {IUser} from "../types/user";
+import {deleteUser, loginUser, registerUser} from "../controllers/auth.controller";
+import {DecodedUser, IUser} from "../types/user";
 import {ValidationError} from "../utils/errors";
 import jwt from "jsonwebtoken";
+
+
+interface Request extends ExpressRequest {
+    user?: DecodedUser;
+}
 
 jest.mock('../models/Users');
 
@@ -132,6 +137,69 @@ describe('Auth Controller', () => {
             await loginUser(req as Request, res as Response, next as NextFunction);
 
             expect(next).toHaveBeenCalledWith(new ValidationError("Username or Password is incorrect!"));
+        });
+    });
+
+    describe('deleteUser', () => {
+        beforeEach(() => {
+            req = {
+                user: {
+                    isAdmin: false,
+                    id: '123'
+                },
+
+                params: {
+                    userID: '123'
+                }
+            };
+
+            res = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn()
+            };
+            next = jest.fn();
+        });
+
+        it('should delete the user from database', async () => {
+            const mockUser = [{_id: '123', name: 'testUser'}];
+            (UserModel.findById as jest.Mock).mockResolvedValue(mockUser);
+            (UserModel.findByIdAndRemove as jest.Mock).mockResolvedValue(mockUser)
+
+            await deleteUser(req as Request & { user?: DecodedUser }, res as Response, next);
+
+            expect(UserModel.findById).toHaveBeenCalledWith(req.user?.id);
+            expect(UserModel.findByIdAndRemove).toHaveBeenCalledWith(req.user?.id);
+            expect(res.json).toHaveBeenCalledWith({message: "User deleted successfully."});
+        });
+
+        it('throws an error when user is not found', async () => {
+            (UserModel.findById as jest.Mock).mockResolvedValue(null);
+
+            await deleteUser(req as Request & { user?: DecodedUser }, res as Response, next);
+
+            expect(UserModel.findById).toHaveBeenCalledWith(req.user?.id);
+            expect(next).toHaveBeenCalledWith(new ValidationError("User not found."));
+
+
+        });
+
+        it('throws an error when token is invalid', async () => {
+            req.user = undefined;
+
+            await deleteUser(req as Request & { user?: DecodedUser }, res as Response, next);
+
+            expect(next).toHaveBeenCalledWith(new ValidationError("Invalid token."));
+
+        });
+
+        it('should handle database errors when finding user', async () => {
+            const error = new Error('Database error');
+            (UserModel.findById as jest.Mock).mockRejectedValue(error);
+
+            await deleteUser(req as Request & { user?: DecodedUser }, res as Response, next);
+
+            expect(UserModel.findById).toHaveBeenCalledWith(req.user?.id);
+            expect(next).toHaveBeenCalledWith(error);
         });
     });
 });
