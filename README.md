@@ -15,6 +15,8 @@
 - MongoDb + Moongoose
 - CSS
 - JWT
+- Unit Tests with JEST
+
 
 ## Funkcjonalności, które działają w aplikacji : 
 - Logowanie i rejestracja + walidacja,
